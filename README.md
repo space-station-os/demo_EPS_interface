@@ -162,16 +162,6 @@ The EPS core acts as the central module, coordinating power generation, consumpt
 
 ---
 
-## Execution and Outputs
-### Steps to Execute
-1. Start ROS master:
-   ```bash
-   roscore
-   ```
-2. Launch the demo:
-   ```bash
-   roslaunch eps_demo eps_demo.launch
-   ```
 
 ### Expected Outputs
 - Logs showing power generation, critical load handling, and EPS state updates.

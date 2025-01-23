@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+class EPSVisualizer(Node):
+    def __init__(self):
+        super().__init__('eps_visualizer')
+        self.subscription = self.create_subscription(
+            String,
+            '/eps/state',
+            self.listener_callback,
+            10)
+        self.energy_stored = []
+        self.available_power = []
+        self.timestamps = []
+
+    def listener_callback(self, msg):
+        try:
+            state_parts = msg.data.split(',')
+            energy_stored = float(state_parts[0].split('=')[1].strip().split()[0])
+            available_power = float(state_parts[1].split('=')[1].strip().split()[0])
+            self.energy_stored.append(energy_stored)
+            self.available_power.append(available_power)
+            self.timestamps.append(len(self.energy_stored))
+        except Exception as e:
+            self.get_logger().error(f"Error parsing message: {e}")
+
+def animate(i, visualizer, ax1, ax2):
+    ax1.clear()
+    ax2.clear()
+    ax1.plot(visualizer.timestamps, visualizer.energy_stored, label="Energy Stored (W)")
+    ax2.plot(visualizer.timestamps, visualizer.available_power, label="Available Power (W)")
+    ax1.set_title("Energy Stored Over Time")
+    ax2.set_title("Available Power Over Time")
+    ax1.set_xlabel("Timesteps")
+    ax2.set_xlabel("Timesteps")
+    ax1.legend()
+    ax2.legend()
+
+def main():
+    rclpy.init()
+    visualizer = EPSVisualizer()
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    ani = FuncAnimation(fig, animate, fargs=(visualizer, ax1, ax2), interval=500)
+    plt.show()
+    visualizer.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
